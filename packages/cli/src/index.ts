@@ -172,10 +172,13 @@ if (targetPackage) {
   searchPaths.push(
     // npm/bun install: sibling scoped package (node_modules/@tokscale/cli-<platform>/bin/...)
     join(scopeDir, targetPackage, "bin", binaryName),
+    // Nested dependency of a wrapper package (node_modules/@scope/wrapper/node_modules/@tokscale/cli/node_modules/@tokscale/cli-<platform>/bin/...)
+    join(cliDir, "node_modules", "@tokscale", "cli", "node_modules", "@tokscale", targetPackage, "bin", binaryName),
     // Nested node_modules: non-hoisted / pnpm (node_modules/@tokscale/cli/node_modules/@tokscale/cli-<platform>/bin/...)
     join(cliDir, "node_modules", "@tokscale", targetPackage, "bin", binaryName),
     // Hoisted edge case (node_modules/@tokscale/node_modules/@tokscale/cli-<platform>/bin/...)
     join(scopeDir, "node_modules", "@tokscale", targetPackage, "bin", binaryName),
+    join(workspaceRoot, "@tokscale", targetPackage, "bin", binaryName),
     join(workspaceRoot, "node_modules", "@tokscale", targetPackage, "bin", binaryName),
     // Monorepo development
     join(workspaceRoot, "packages", targetPackage, "bin", binaryName),

@@ -20,4 +20,4 @@ if (!firstArg || (!firstArg.startsWith("-") && !passthroughArgs.has(firstArg))) 
   process.argv.splice(2, 0, "web");
 }
 
-await import("@tokscale/cli");
+await import("./dist/index.js");

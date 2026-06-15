@@ -1,6 +1,6 @@
 {
   "name": "@pxlarified/tokal",
-  "version": "3.1.4",
+  "version": "3.1.6",
   "description": "Local-only Tokscale web UI launcher for tracking AI coding assistant token usage.",
   "type": "module",
   "main": "index.js",
@@ -35,6 +35,7 @@
   },
   "files": [
     "index.js",
-    "bin.js"
+    "bin.js",
+    "dist/**/*"
   ]
 }
