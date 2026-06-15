@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { spawnSync, execSync, spawn } from "node:child_process";
 import { createServer } from "node:http";
-import { existsSync, mkdtempSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { resolve, join, basename } from "node:path";
+import { resolve, join, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const binaryName = process.platform === "win32" ? "tokscale.exe" : "tokscale";
@@ -296,37 +296,44 @@ async function runLocalWeb(binaryPath: string, args: string[]): Promise<void> {
 
   const frontendDir = findFrontendDir();
   if (frontendDir) {
-    const dataDir = mkdtempSync(join(tmpdir(), "tokscale-web-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "tokal-web-"));
     const dataPath = join(dataDir, "data.json");
     writeFileSync(dataPath, JSON.stringify(data));
 
+    const frontendInstallCwd = frontendPackageInstallCwd(frontendDir);
     if (!frontendDependenciesInstalled(frontendDir)) {
-      const installer = existsSync(join(workspaceRoot, "bun.lock")) && commandExists("bun") ? "bun" : npmCommand();
-      const installArgs = installer.startsWith("bun") ? ["install"] : ["install"];
+      const installer = packageManagerInvocation(frontendInstallCwd, ["install"]);
       console.error("Frontend dependencies are missing; installing them now...");
-      const install = spawnSync(installer, installArgs, { cwd: workspaceRoot, stdio: "inherit" });
+      const install = spawnSync(installer.command, installer.args, { cwd: frontendInstallCwd, stdio: "inherit" });
       if (install.status !== 0) process.exit(install.status ?? 1);
     }
 
-    const runner = existsSync(join(workspaceRoot, "bun.lock")) && commandExists("bun") ? "bun" : npmCommand();
-    const runnerArgs = ["run", "dev", "--", "--hostname", host, "--port", String(port)];
-    console.error("Starting full Tokscale frontend in local-only mode...");
-    const child = spawn(runner, runnerArgs, {
-      cwd: frontendDir,
-      stdio: "inherit",
-      env: {
-        ...process.env,
-        TOKSCALE_LOCAL_DATA_PATH: dataPath,
-        NEXT_PUBLIC_TOKSCALE_LOCAL_ONLY: "1",
-      },
-    });
+    const runner = packageManagerInvocation(frontendInstallCwd, ["run", "dev", "--", "--hostname", host, "--port", String(port), "--webpack"]);
+    const runnableFrontendDir = materializeFrontendDir(frontendDir, frontendInstallCwd, dataDir);
+    console.error("Starting full Tokal frontend in local-only mode...");
+    let child;
+    try {
+      child = spawn(runner.command, runner.args, {
+        cwd: runnableFrontendDir,
+        stdio: "inherit",
+        env: {
+          ...process.env,
+          TOKSCALE_LOCAL_DATA_PATH: dataPath,
+          NEXT_PUBLIC_TOKSCALE_LOCAL_ONLY: "1",
+        },
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Error: failed to start frontend (${runner.command}): ${message}`);
+      process.exit(1);
+    }
     child.on("error", (error) => {
-      console.error(`Error: failed to start frontend (${runner}): ${error.message}`);
+      console.error(`Error: failed to start frontend (${runner.command}): ${error.message}`);
       process.exit(1);
     });
 
     const url = `http://${host}:${port}/local`;
-    console.error(`Tokscale full local web UI starting at ${url}`);
+    console.error(`Tokal full local web UI starting at ${url}`);
     console.error("Showing your local profile only. No database, account, leaderboard, settings, or upload is used.");
     if (open) setTimeout(() => openBrowser(url), 1500);
 
@@ -382,7 +389,7 @@ async function runLocalWeb(binaryPath: string, args: string[]): Promise<void> {
   const address = server.address();
   const actualPort = typeof address === "object" && address ? address.port : port;
   const url = `http://${host}:${actualPort}`;
-  console.error(`Tokscale local web UI running at ${url}`);
+  console.error(`Tokal local web UI running at ${url}`);
   console.error("Showing local data only. No database or upload is used.");
   console.error("Press Ctrl+C to stop.");
 
@@ -394,13 +401,77 @@ function commandExists(command: string): boolean {
   return !result.error && result.status === 0;
 }
 
-function npmCommand(): string {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
+function packageManagerInvocation(cwd: string, args: string[]): { command: string; args: string[] } {
+  if (existsSync(join(cwd, "bun.lock")) && commandExists("bun")) {
+    return { command: "bun", args };
+  }
+
+  return process.platform === "win32"
+    ? { command: process.execPath, args: [npmCliPath(), ...args] }
+    : { command: "npm", args };
+}
+
+function npmCliPath(): string {
+  const npmExecPath = process.env.npm_execpath;
+  if (npmExecPath && existsSync(npmExecPath)) return npmExecPath;
+
+  return process.platform === "win32"
+    ? join(dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js")
+    : "npm";
 }
 
 function frontendDependenciesInstalled(frontendDir: string): boolean {
-  return existsSync(join(frontendDir, "node_modules", ".bin", process.platform === "win32" ? "next.cmd" : "next")) ||
-    existsSync(join(workspaceRoot, "node_modules", ".bin", process.platform === "win32" ? "next.cmd" : "next"));
+  const nextBin = process.platform === "win32" ? "next.cmd" : "next";
+  return nextBinDirs(frontendDir).some((dir) => existsSync(join(dir, nextBin)));
+}
+
+function materializeFrontendDir(frontendDir: string, installCwd: string, dataDir: string): string {
+  if (!frontendDir.split(/[\\/]+/).includes("node_modules")) return frontendDir;
+
+  const runnableDir = join(dataDir, "frontend");
+  cpSync(frontendDir, runnableDir, {
+    recursive: true,
+    filter: (source) => {
+      const relativeParts = source.slice(frontendDir.length).split(/[\\/]+/).filter(Boolean);
+      return !relativeParts.includes("node_modules") && !relativeParts.includes(".next");
+    },
+  });
+
+  const modulesSource = existsSync(join(installCwd, "node_modules")) ? join(installCwd, "node_modules") : join(cliDir, "node_modules");
+  const modulesLink = join(runnableDir, "node_modules");
+  if (existsSync(modulesSource) && !existsSync(modulesLink)) {
+    symlinkSync(modulesSource, modulesLink, process.platform === "win32" ? "junction" : "dir");
+  }
+
+  return runnableDir;
+}
+
+function nextBinDirs(frontendDir: string): string[] {
+  return [
+    join(frontendDir, "node_modules", ".bin"),
+    join(frontendPackageInstallCwd(frontendDir), "node_modules", ".bin"),
+    join(cliDir, "node_modules", ".bin"),
+    // In normal npm/npx installs, workspaceRoot is the node_modules directory.
+    join(workspaceRoot, ".bin"),
+    // In monorepo development, workspaceRoot is the repo root.
+    join(workspaceRoot, "node_modules", ".bin"),
+  ];
+}
+
+function frontendPackageInstallCwd(frontendDir: string): string {
+  if (existsSync(join(workspaceRoot, "package.json")) && existsSync(join(workspaceRoot, "packages", "frontend"))) {
+    return workspaceRoot;
+  }
+
+  if (existsSync(join(workspaceRoot, "node_modules")) && existsSync(join(cliDir, "frontend"))) {
+    return workspaceRoot;
+  }
+
+  if (existsSync(join(cliDir, "package.json")) && existsSync(join(cliDir, "frontend"))) {
+    return cliDir;
+  }
+
+  return frontendDir;
 }
 
 function findFrontendDir(): string | null {
@@ -433,7 +504,7 @@ function renderLocalWebHtml(data: unknown): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tokscale Local Profile</title>
+<title>Tokal Local Profile</title>
 <style>
 :root { color-scheme: dark; --bg:#05070d; --card:#101522; --muted:#8b98ad; --text:#edf3ff; --accent:#70a5ff; --border:#22304a; }
 * { box-sizing: border-box; } body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at top, #13213c, var(--bg) 42rem); color:var(--text); }
@@ -452,7 +523,7 @@ a { color:var(--accent); } @media (max-width:800px){ header{display:block}.grid{
 </style>
 </head>
 <body><main>
-<header><div><h1>Your local Tokscale profile</h1><p>Private, local-only web UI generated from your machine's token usage. No database, account, leaderboard, or upload is used.</p></div><div class="badge">Local only</div></header>
+<header><div><h1>Your local Tokal profile</h1><p>Private, local-only web UI generated from your machine's token usage. No database, account, leaderboard, or upload is used.</p></div><div class="badge">Local only</div></header>
 <section class="grid" id="metrics"></section>
 <section class="card"><div class="metric">Daily usage</div><div class="chart" id="chart"></div></section>
 <section class="card section"><div class="metric">Clients</div><table><thead><tr><th>Client</th><th>Tokens</th><th>Cost</th></tr></thead><tbody id="clients"></tbody></table></section>

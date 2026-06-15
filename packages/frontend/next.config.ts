@@ -1,6 +1,20 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
+const projectRoot = process.cwd();
+
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: projectRoot,
+
+  webpack: (config) => {
+    config.resolve = config.resolve ?? {};
+    config.resolve.alias = {
+      ...(config.resolve.alias ?? {}),
+      "@": path.join(projectRoot, "src"),
+    };
+    return config;
+  },
+
   // Enable styled-components SSR
   compiler: {
     styledComponents: true,

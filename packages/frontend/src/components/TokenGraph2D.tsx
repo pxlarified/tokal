@@ -63,14 +63,25 @@ export function TokenGraph2D({ contributions, palette, year, onDayHover, onDayCl
     ctx.textAlign = "left";
 
     let lastMonth = -1;
+    let lastMonthLabelRight = -Infinity;
+    const monthLabelGap = 6;
     for (let weekIndex = 0; weekIndex < weeksData.length; weekIndex++) {
       const week = weeksData[weekIndex];
       const firstDay = week.days.find((d) => d !== null);
       if (firstDay) {
         const month = getMonth(parseISO(firstDay.date));
         if (month !== lastMonth) {
+          const label = MONTH_LABELS_SHORT[month];
           const x = CANVAS_MARGIN + TEXT_HEIGHT + weekIndex * CELL_SIZE;
-          ctx.fillText(MONTH_LABELS_SHORT[month], x, CANVAS_MARGIN + FONT_SIZE);
+          const labelWidth = ctx.measureText(label).width;
+
+          // Month changes can land in adjacent weeks (for example Feb/Mar),
+          // which makes short labels draw on top of each other in the compact
+          // local graph. Skip labels that would collide with the previous one.
+          if (x >= lastMonthLabelRight + monthLabelGap) {
+            ctx.fillText(label, x, CANVAS_MARGIN + FONT_SIZE);
+            lastMonthLabelRight = x + labelWidth;
+          }
           lastMonth = month;
         }
       }

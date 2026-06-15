@@ -132,7 +132,7 @@ export default function LocalClient() {
         {!data ? (
           isLoadingLocalData ? (
             <InfoCard>
-              <MutedText>Loading local Tokscale data…</MutedText>
+              <MutedText>Loading local Tokal data…</MutedText>
             </InfoCard>
           ) : (
             <>
