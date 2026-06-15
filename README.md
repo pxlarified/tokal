@@ -15,21 +15,28 @@ The main difference from upstream Tokscale is privacy. Tokal is focused on local
 ## Quick start
 
 ```bash
+npx @pxlarified/tokal
+```
+
+Or install it globally:
+
+```bash
+npm install -g @pxlarified/tokal
+tokal
+```
+
+For local development from this repository:
+
+```bash
 npm install
 npm run build
 node packages/cli/src/index.ts web
 ```
 
-Or, after installing the CLI package locally, run.
+The `tokal` command scans local usage data, starts a local-only web UI, and opens it in your browser. Use `--no-open` if you do not want the browser opened automatically:
 
 ```bash
-tokscale web
-```
-
-The `web` command scans local usage data, starts a local-only web UI, and opens it in your browser. Use `--no-open` if you do not want the browser opened automatically:
-
-```bash
-tokscale web --no-open
+tokal --no-open
 ```
 
 ## CLI usage
