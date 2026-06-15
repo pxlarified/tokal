@@ -58,7 +58,7 @@
 | <img width="48px" src=".github/assets/client-opencode.png" alt="OpenCode" /> | [OpenCode](https://github.com/sst/opencode) | `~/.local/share/opencode/opencode.db` (1.2+, all channels including `opencode-stable.db`) or/and `~/.local/share/opencode/storage/message/` (legacy/unmigrated) | ✅ Yes |
 | <img width="48px" src=".github/assets/client-claude.jpg" alt="Claude" /> | [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | `~/.claude/projects/` and `~/.claude/transcripts/` | ✅ Yes |
 | <img width="48px" src=".github/assets/client-openclaw.jpg" alt="OpenClaw" /> | [OpenClaw](https://openclaw.ai/) | `~/.openclaw/agents/` (+ legacy: `.clawdbot`, `.moltbot`, `.moldbot`) | ✅ Yes |
-| <img width="48px" src=".github/assets/client-openai.jpg" alt="Codex" /> | [Codex CLI](https://github.com/openai/codex) | `~/.codex/sessions/` | ✅ Yes |
+| <img width="48px" src="https://avatars.githubusercontent.com/u/267193182?v=4" alt="Codex" /> | [Codex](https://github.com/openai/codex) | `~/.codex/sessions/` | ✅ Yes |
 | <img width="48px" src=".github/assets/client-copilot.jpg" alt="Copilot" /> | [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-the-github-copilot-coding-agent-in-cli) | `~/.copilot/otel/*.jsonl` (+ `COPILOT_OTEL_FILE_EXPORTER_PATH`) | ✅ Yes |
 | <img width="48px" src=".github/assets/client-hermes.png" alt="Hermes Agent" /> | [Hermes Agent](https://github.com/NousResearch/hermes-agent) | `$HERMES_HOME/state.db` (fallback: `~/.hermes/state.db`) | ✅ Yes |
 | <img width="48px" src=".github/assets/client-gemini.png" alt="Gemini" /> | [Gemini CLI](https://github.com/google-gemini/gemini-cli) | `$GEMINI_CLI_HOME/tmp/*/chats/*.json` (fallback: `~/.gemini/tmp/*/chats/*.json`) | ✅ Yes |
@@ -152,7 +152,7 @@ In the age of AI-assisted development, **tokens are the new energy**. They power
   - GitHub-style contribution graph with 9 color themes
   - Real-time filtering and sorting
   - Zero flicker rendering
-- **Multi-platform support** - Track usage across OpenCode, Claude Code, Codex CLI, Copilot CLI, Cursor IDE, Gemini CLI, Amp, Codebuff, Droid, OpenClaw, Hermes Agent, Pi, Kimi CLI, Qwen CLI, Roo Code, Kilo, Mux, Kilo CLI, Crush, Goose, Antigravity, Zed, Kiro, Trae, Warp/Oz, Cline, Gajae-Code, Grok Build, and Synthetic
+- **Multi-platform support** - Track usage across OpenCode, Claude Code, Codex, Copilot CLI, Cursor IDE, Gemini CLI, Amp, Codebuff, Droid, OpenClaw, Hermes Agent, Pi, Kimi CLI, Qwen CLI, Roo Code, Kilo, Mux, Kilo CLI, Crush, Goose, Antigravity, Zed, Kiro, Trae, Warp/Oz, Cline, Gajae-Code, Grok Build, and Synthetic
 - **Real-time pricing** - Fetches current pricing from LiteLLM with 1-hour disk cache; automatic OpenRouter fallback and Cursor model pricing for newly released models
 - **Detailed breakdowns** - Input, output, cache read/write, and reasoning token tracking
 - **Native Rust core** - All parsing and aggregation done in Rust for 10x faster processing
@@ -240,6 +240,9 @@ tokscale models --light
 
 # Launch TUI explicitly
 tokscale tui
+
+# Launch a private local web profile (no database or upload)
+npx tokscale web
 
 # Export contribution graph data as JSON
 tokscale graph --output data.json
@@ -815,11 +818,11 @@ TOKSCALE_API_TOKEN=tt_xxx tokscale submit
 
 ### Headless Mode
 
-Tokscale can aggregate token usage from **Codex CLI headless outputs** for automation, CI/CD pipelines, and batch processing.
+Tokscale can aggregate token usage from **Codex headless outputs** for automation, CI/CD pipelines, and batch processing.
 
 **What is headless mode?**
 
-When you run Codex CLI with JSON output flags (e.g., `codex exec --json`), it outputs usage data to stdout instead of storing it in its regular session directories. Headless mode allows you to capture and track this usage.
+When you run Codex with JSON output flags (e.g., `codex exec --json`), it outputs usage data to stdout instead of storing it in its regular session directories. Headless mode allows you to capture and track this usage.
 
 **Storage location:** `~/.config/tokscale/headless/`
 
@@ -828,7 +831,7 @@ On macOS, Tokscale also scans `~/Library/Application Support/tokscale/headless/`
 Tokscale automatically scans this directory structure:
 ```
 ~/.config/tokscale/headless/
-└── codex/       # Codex CLI JSONL outputs
+└── codex/       # Codex JSONL outputs
 ```
 
 **Environment variable:** Set `TOKSCALE_HEADLESS_DIR` to customize the headless log directory:
@@ -840,13 +843,13 @@ export TOKSCALE_HEADLESS_DIR="$HOME/my-custom-logs"
 
 | Tool | Command Example |
 |------|-----------------|
-| **Codex CLI** | `tokscale headless codex exec -m gpt-5 "implement feature"` |
+| **Codex** | `tokscale headless codex exec -m gpt-5 "implement feature"` |
 
 **Manual redirect (optional):**
 
 | Tool | Command Example |
 |------|-----------------|
-| **Codex CLI** | `codex exec --json "implement feature" > ~/.config/tokscale/headless/codex/ci-run.jsonl` |
+| **Codex** | `codex exec --json "implement feature" > ~/.config/tokscale/headless/codex/ci-run.jsonl` |
 
 **Diagnostics:**
 
@@ -871,7 +874,7 @@ tokscale sources --json
   run: tokscale --json
 ```
 
-> **Note**: Headless capture is supported for Codex CLI only. If you run Codex directly, redirect stdout to the headless directory as shown above.
+> **Note**: Headless capture is supported for Codex only. If you run Codex directly, redirect stdout to the headless directory as shown above.
 
 ## Frontend Visualization
 
@@ -1197,7 +1200,7 @@ AI coding tools store their session data in cross-platform locations. Most tools
 | OpenCode | `~/.local/share/opencode/` | `%USERPROFILE%\.local\share\opencode\` | Uses [`xdg-basedir`](https://github.com/sindresorhus/xdg-basedir) for cross-platform consistency ([source](https://github.com/sst/opencode/blob/main/packages/opencode/src/global/index.ts)) |
 | Claude Code | `~/.claude/` | `%USERPROFILE%\.claude\` | Same path on all platforms |
 | OpenClaw | `~/.openclaw/` (+ legacy: `.clawdbot`, `.moltbot`, `.moldbot`) | `%USERPROFILE%\.openclaw\` (+ legacy paths) | Same path on all platforms |
-| Codex CLI | `~/.codex/` | `%USERPROFILE%\.codex\` | Configurable via `CODEX_HOME` env var ([source](https://github.com/openai/codex)) |
+| Codex | `~/.codex/` | `%USERPROFILE%\.codex\` | Configurable via `CODEX_HOME` env var ([source](https://github.com/openai/codex)) |
 | Copilot CLI | `~/.copilot/otel/` | `%USERPROFILE%\.copilot\otel\` | Requires OTEL file export; also auto-ingests `COPILOT_OTEL_FILE_EXPORTER_PATH` |
 | Hermes Agent | `~/.hermes/` | `%USERPROFILE%\.hermes\` | Configurable via `HERMES_HOME` env var ([source](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/session-storage.md)) |
 | Gemini CLI | `~/.gemini/` | `%USERPROFILE%\.gemini\` | Configurable via `GEMINI_CLI_HOME` env var |
@@ -1245,7 +1248,7 @@ By default, some AI coding assistants automatically delete old session files. To
 |----------|---------|-------------|-------------------|--------|
 | Claude Code | **⚠️ 30 days** | `~/.claude/settings.json` | `"cleanupPeriodDays": 9999999999` | [Docs](https://docs.anthropic.com/en/docs/claude-code/settings) |
 | Gemini CLI | Disabled | `$GEMINI_CLI_HOME/settings.json` (fallback: `~/.gemini/settings.json`) | `"general.sessionRetention.enabled": false` | [Docs](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/session-management.md) |
-| Codex CLI | Disabled | N/A | No cleanup feature | [#6015](https://github.com/openai/codex/issues/6015) |
+| Codex | Disabled | N/A | No cleanup feature | [#6015](https://github.com/openai/codex/issues/6015) |
 | OpenCode | Disabled | N/A | No cleanup feature | [#4980](https://github.com/sst/opencode/issues/4980) |
 
 ### Claude Code
@@ -1288,11 +1291,11 @@ Or set an extremely long retention period:
 }
 ```
 
-### Codex CLI
+### Codex
 
 **Default**: No automatic cleanup (sessions persist forever)
 
-Codex CLI does not have built-in session cleanup. Sessions in `~/.codex/sessions/` persist indefinitely.
+Codex does not have built-in session cleanup. Sessions in `~/.codex/sessions/` persist indefinitely.
 
 > **Note**: There's an open feature request for this: [#6015](https://github.com/openai/codex/issues/6015)
 
@@ -1384,7 +1387,7 @@ Wrapper transcript files under `~/.claude/transcripts/` are counted only when th
 
 Tokscale's `claude` client is Claude Code token accounting, not Claude Desktop chat accounting. Claude Desktop stores app data under locations such as `~/Library/Application Support/Claude`, but Anthropic does not document a stable local per-message token ledger for consumer desktop chat or chat-history exports. Run `tokscale clients` to see a diagnostic when Claude Desktop data is present but only Claude Code JSONL roots are scannable. `tokscale usage` can show best-effort Claude subscription quota bars from Claude Code credentials, while organization/API usage belongs to Anthropic's Admin Usage and Cost APIs and is intentionally separate from local transcript scanning.
 
-### Codex CLI
+### Codex
 
 Location: `~/.codex/sessions/*.jsonl`
 

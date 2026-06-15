@@ -1,11 +1,11 @@
 import type { ClientType } from "./types";
 
 // 2D Canvas
-export const BOX_WIDTH = 10;
+export const BOX_WIDTH = 12;
 export const BOX_MARGIN = 2;
 export const TEXT_HEIGHT = 15;
 export const CANVAS_MARGIN = 20;
-export const HEADER_HEIGHT = 60;
+export const HEADER_HEIGHT = 44;
 export const BOX_BORDER_RADIUS = 2;
 export const WEEKS_IN_YEAR = 53;
 export const DAYS_IN_WEEK = 7;
@@ -29,7 +29,7 @@ export const MONTH_LABELS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Ju
 export const SOURCE_DISPLAY_NAMES: Record<ClientType, string> = {
   opencode: "OpenCode",
   claude: "Claude Code",
-  codex: "Codex CLI",
+  codex: "Codex",
   copilot: "Copilot",
   gemini: "Gemini CLI",
   cursor: "Cursor",
@@ -63,7 +63,7 @@ const GITHUB_CDN_BASE = "https://raw.githubusercontent.com/junhoyeo/tokscale/mai
 export const SOURCE_LOGOS: Record<ClientType, string> = {
   opencode: `${GITHUB_CDN_BASE}/client-opencode.png`,
   claude: `${GITHUB_CDN_BASE}/client-claude.jpg`,
-  codex: `${GITHUB_CDN_BASE}/client-openai.jpg`,
+  codex: "https://avatars.githubusercontent.com/u/267193182?v=4",
   copilot: `${GITHUB_CDN_BASE}/client-copilot.jpg`,
   gemini: `${GITHUB_CDN_BASE}/client-gemini.png`,
   cursor: `${GITHUB_CDN_BASE}/client-cursor.jpg`,

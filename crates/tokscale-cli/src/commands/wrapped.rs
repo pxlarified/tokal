@@ -1432,7 +1432,7 @@ fn client_display_name(client: &str) -> Option<&'static str> {
     match client {
         "opencode" => Some("OpenCode"),
         "claude" => Some("Claude Code"),
-        "codex" => Some("Codex CLI"),
+        "codex" => Some("Codex"),
         "copilot" => Some("Copilot CLI"),
         "gemini" => Some("Gemini CLI"),
         s if s == ClientId::Cursor.as_str() => Some("Cursor IDE"),
@@ -1464,7 +1464,7 @@ fn client_logo_url(client_name: &str) -> Option<&'static str> {
     match client_name {
         "OpenCode" => Some("https://tokscale.ai/assets/logos/opencode.png"),
         "Claude Code" => Some("https://tokscale.ai/assets/logos/claude.jpg"),
-        "Codex CLI" => Some("https://tokscale.ai/assets/logos/openai.jpg"),
+        "Codex" => Some("https://avatars.githubusercontent.com/u/267193182?v=4"),
         "Copilot CLI" => Some(
             "https://raw.githubusercontent.com/junhoyeo/tokscale/main/.github/assets/client-copilot.jpg",
         ),
@@ -1504,7 +1504,7 @@ fn client_logo_url(client_name: &str) -> Option<&'static str> {
 fn provider_logo_url(provider: &str) -> Option<&'static str> {
     match provider {
         "anthropic" => Some("https://tokscale.ai/assets/logos/claude.jpg"),
-        "openai" => Some("https://tokscale.ai/assets/logos/openai.jpg"),
+        "openai" => Some("https://avatars.githubusercontent.com/u/267193182?v=4"),
         "google" => Some("https://tokscale.ai/assets/logos/gemini.png"),
         "xai" => Some("https://tokscale.ai/assets/logos/grok.jpg"),
         "zai" => Some("https://tokscale.ai/assets/logos/zai.jpg"),
@@ -2374,7 +2374,7 @@ mod tests {
 
     #[test]
     fn test_client_display_name_codex() {
-        assert_eq!(client_display_name("codex"), Some("Codex CLI"));
+        assert_eq!(client_display_name("codex"), Some("Codex"));
     }
 
     #[test]
@@ -2493,8 +2493,8 @@ mod tests {
     #[test]
     fn test_client_logo_url_codex_cli() {
         assert_eq!(
-            client_logo_url("Codex CLI"),
-            Some("https://tokscale.ai/assets/logos/openai.jpg")
+            client_logo_url("Codex"),
+            Some("https://avatars.githubusercontent.com/u/267193182?v=4")
         );
     }
 
@@ -2643,7 +2643,7 @@ mod tests {
     fn test_provider_logo_url_openai() {
         assert_eq!(
             provider_logo_url("openai"),
-            Some("https://tokscale.ai/assets/logos/openai.jpg")
+            Some("https://avatars.githubusercontent.com/u/267193182?v=4")
         );
     }
 

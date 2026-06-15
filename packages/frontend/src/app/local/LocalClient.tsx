@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import type { TokenContributionData } from "@/lib/types";
 import { DataInput } from "@/components/DataInput";
 import { GraphContainer } from "@/components/GraphContainer";
-import { Navigation } from "@/components/layout/Navigation";
-import { Footer } from "@/components/layout/Footer";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -17,7 +15,7 @@ const Container = styled.div`
 
 const Main = styled.main`
   flex: 1;
-  max-width: 1280px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 40px 24px;
   width: 100%;
@@ -77,6 +75,11 @@ const PrimaryText = styled.span`
   color: var(--color-primary);
 `;
 
+const ErrorText = styled.p`
+  color: var(--color-danger-fg, #f85149);
+  margin-top: 12px;
+`;
+
 const LoadButton = styled.button`
   margin-left: auto;
   padding: 8px 16px;
@@ -93,21 +96,50 @@ const LoadButton = styled.button`
 
 export default function LocalClient() {
   const [data, setData] = useState<TokenContributionData | null>(null);
+  const [isLoadingLocalData, setIsLoadingLocalData] = useState(true);
+  const [localDataError, setLocalDataError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch('/api/local-data', { cache: 'no-store' })
+      .then(async (response) => {
+        if (response.status === 404) return null;
+        if (!response.ok) throw new Error(await response.text());
+        return response.json() as Promise<TokenContributionData>;
+      })
+      .then((payload) => {
+        if (!cancelled && payload) setData(payload);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          const message = error instanceof Error ? error.message : String(error);
+          setLocalDataError(message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingLocalData(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <Container>
-      <Navigation />
-
       <Main>
-        <HeaderSection>
-          <Title>Local Viewer</Title>
-          <Description>
-            View your token usage data locally without submitting
-          </Description>
-        </HeaderSection>
-
         {!data ? (
-          <DataInput onDataLoaded={setData} />
+          isLoadingLocalData ? (
+            <InfoCard>
+              <MutedText>Loading local Tokscale data…</MutedText>
+            </InfoCard>
+          ) : (
+            <>
+              <DataInput onDataLoaded={setData} />
+              {localDataError ? <ErrorText>{localDataError}</ErrorText> : null}
+            </>
+          )
         ) : (
           <ContentWrapper>
             <InfoCard>
@@ -134,7 +166,6 @@ export default function LocalClient() {
         )}
       </Main>
 
-      <Footer />
     </Container>
   );
 }

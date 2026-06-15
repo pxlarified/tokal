@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Navigation } from "@/components/layout/Navigation";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { getStargazersCount } from "@/lib/github";
@@ -27,6 +28,10 @@ function createEmptyLeaderboardData(sortBy: "tokens" | "cost"): LeaderboardData 
 }
 
 export default async function HomePage() {
+  if (process.env.NEXT_PUBLIC_TOKSCALE_LOCAL_ONLY === "1") {
+    redirect("/local");
+  }
+
   const [stargazersCount, topUsersByCost, topUsersByTokens] = await Promise.all([
     getStargazersCount("junhoyeo/tokscale"),
     getLeaderboardData("all", 1, 5, "cost").catch(() => createEmptyLeaderboardData("cost")),

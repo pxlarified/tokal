@@ -649,11 +649,17 @@ function UserMenu({ user, onSignOut }: { user: User; onSignOut: () => void }) {
 
 export function Navigation() {
   const pathname = usePathname();
+  const isLocalOnly = process.env.NEXT_PUBLIC_TOKSCALE_LOCAL_ONLY === "1";
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (isLocalOnly) {
+      setIsLoading(false);
+      return;
+    }
+
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((data) => {
@@ -663,14 +669,14 @@ export function Navigation() {
       .catch(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [isLocalOnly]);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <NavContainer aria-label="Main navigation">
       <NavHeaderRow>
-        <NavLogoLink href="/" aria-label="Tokscale home">
+        <NavLogoLink href={isLocalOnly ? "/local" : "/"} aria-label="Tokscale home">
           <NavLogoImage
             src="/assets/hero-logo.svg"
             alt="Tokscale"
@@ -688,72 +694,94 @@ export function Navigation() {
         </HamburgerButton>
 
         <DesktopNavItems>
-          <NavItemLink href="/" $isActive={pathname === "/"}>
-            About
-          </NavItemLink>
-          <NavItemLink href="/leaderboard" $isActive={pathname === "/leaderboard" || pathname.startsWith("/groups")}>
-            Leaderboard
-          </NavItemLink>
-          <NavItemLink href="/profile" $isActive={pathname === "/profile" || pathname.startsWith("/u/")}>
-            Profile
-          </NavItemLink>
-          <NavItemBase
-            as="a"
-            href="https://github.com/junhoyeo/tokscale"
-            target="_blank"
-            rel="noopener noreferrer"
-            $isActive={false}
-          >
-            GitHub
-          </NavItemBase>
+          {isLocalOnly ? (
+            <NavItemLink href="/local" $isActive={pathname === "/local"}>
+              Local Profile
+            </NavItemLink>
+          ) : (
+            <>
+              <NavItemLink href="/" $isActive={pathname === "/"}>
+                About
+              </NavItemLink>
+              <NavItemLink href="/leaderboard" $isActive={pathname === "/leaderboard" || pathname.startsWith("/groups")}>
+                Leaderboard
+              </NavItemLink>
+              <NavItemLink href="/profile" $isActive={pathname === "/profile" || pathname.startsWith("/u/")}>
+                Profile
+              </NavItemLink>
+            </>
+          )}
+          {!isLocalOnly ? (
+            <NavItemBase
+              as="a"
+              href="https://github.com/junhoyeo/tokscale"
+              target="_blank"
+              rel="noopener noreferrer"
+              $isActive={false}
+            >
+              GitHub
+            </NavItemBase>
+          ) : null}
         </DesktopNavItems>
 
-        <DesktopAuthSection>
-          {isLoading ? (
-            <LoadingSkeleton />
-          ) : user ? (
-            <UserMenu user={user} onSignOut={async () => {
-              await fetch("/api/auth/logout", { method: "POST" });
-              setUser(null);
-              window.location.href = "/leaderboard";
-            }} />
-          ) : (
-            <SignInButton href="/api/auth/github" aria-label="Sign in with GitHub">
-              <SignInIcon>
-                <GitHubIcon />
-              </SignInIcon>
-              <SignInTextFull>Sign in with GitHub</SignInTextFull>
-              <SignInTextCompact>Sign in</SignInTextCompact>
-            </SignInButton>
-          )}
-        </DesktopAuthSection>
+        {!isLocalOnly ? (
+          <DesktopAuthSection>
+            {isLoading ? (
+              <LoadingSkeleton />
+            ) : user ? (
+              <UserMenu user={user} onSignOut={async () => {
+                await fetch("/api/auth/logout", { method: "POST" });
+                setUser(null);
+                window.location.href = "/leaderboard";
+              }} />
+            ) : (
+              <SignInButton href="/api/auth/github" aria-label="Sign in with GitHub">
+                <SignInIcon>
+                  <GitHubIcon />
+                </SignInIcon>
+                <SignInTextFull>Sign in with GitHub</SignInTextFull>
+                <SignInTextCompact>Sign in</SignInTextCompact>
+              </SignInButton>
+            )}
+          </DesktopAuthSection>
+        ) : null}
       </NavHeaderRow>
 
 
       <MobileDropdownWrapper $isOpen={isMobileMenuOpen}>
         <MobileDropdown>
-          <DropdownNavLink href="/" $isActive={pathname === "/"} onClick={closeMobileMenu}>
-            About
-          </DropdownNavLink>
-          <DropdownNavLink href="/leaderboard" $isActive={pathname === "/leaderboard" || pathname.startsWith("/groups")} onClick={closeMobileMenu}>
-            Leaderboard
-          </DropdownNavLink>
-          <DropdownNavLink href="/profile" $isActive={pathname === "/profile" || pathname.startsWith("/u/")} onClick={closeMobileMenu}>
-            Profile
-          </DropdownNavLink>
-          <DropdownNavLinkExternal
-            href="https://github.com/junhoyeo/tokscale"
-            target="_blank"
-            rel="noopener noreferrer"
-            $isActive={false}
-            onClick={closeMobileMenu}
-          >
-            GitHub ↗
-          </DropdownNavLinkExternal>
+          {isLocalOnly ? (
+            <DropdownNavLink href="/local" $isActive={pathname === "/local"} onClick={closeMobileMenu}>
+              Local Profile
+            </DropdownNavLink>
+          ) : (
+            <>
+              <DropdownNavLink href="/" $isActive={pathname === "/"} onClick={closeMobileMenu}>
+                About
+              </DropdownNavLink>
+              <DropdownNavLink href="/leaderboard" $isActive={pathname === "/leaderboard" || pathname.startsWith("/groups")} onClick={closeMobileMenu}>
+                Leaderboard
+              </DropdownNavLink>
+              <DropdownNavLink href="/profile" $isActive={pathname === "/profile" || pathname.startsWith("/u/")} onClick={closeMobileMenu}>
+                Profile
+              </DropdownNavLink>
+            </>
+          )}
+          {!isLocalOnly ? (
+            <DropdownNavLinkExternal
+              href="https://github.com/junhoyeo/tokscale"
+              target="_blank"
+              rel="noopener noreferrer"
+              $isActive={false}
+              onClick={closeMobileMenu}
+            >
+              GitHub ↗
+            </DropdownNavLinkExternal>
+          ) : null}
 
-          <DropdownDivider />
+          {!isLocalOnly ? <DropdownDivider /> : null}
 
-          {isLoading ? null : user ? (
+          {!isLocalOnly && (isLoading ? null : user ? (
             <>
               <DropdownUserCard>
                 <AvatarImg
@@ -795,7 +823,7 @@ export function Navigation() {
               </SignInIcon>
               <DropdownSignInText>Sign in with GitHub</DropdownSignInText>
             </DropdownSignInButton>
-          )}
+          ))}
         </MobileDropdown>
       </MobileDropdownWrapper>
     </NavContainer>

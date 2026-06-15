@@ -3708,7 +3708,7 @@ fn run_clients_command(json: bool, home_dir: Option<String>) -> Result<()> {
 
                 let label = match client {
                     ClientId::Claude => "Claude Code",
-                    ClientId::Codex => "Codex CLI",
+                    ClientId::Codex => "Codex",
                     ClientId::Copilot => "Copilot CLI",
                     ClientId::Gemini => "Gemini CLI",
                     ClientId::Cursor => "Cursor IDE",
@@ -3775,7 +3775,7 @@ fn run_clients_command(json: bool, home_dir: Option<String>) -> Result<()> {
                 .map(|p| p.to_string_lossy().to_string())
                 .collect(),
             clients,
-            note: "Headless capture is supported for Codex CLI only.".to_string(),
+            note: "Headless capture is supported for Codex only.".to_string(),
         };
 
         println!("{}", serde_json::to_string_pretty(&output)?);
@@ -3906,7 +3906,7 @@ fn run_clients_command(json: bool, home_dir: Option<String>) -> Result<()> {
 
         println!(
             "  {}",
-            "Note: Headless capture is supported for Codex CLI only.".bright_black()
+            "Note: Headless capture is supported for Codex only.".bright_black()
         );
         println!();
     }

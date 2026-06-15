@@ -1,4 +1,4 @@
-//! Codex CLI session parser
+//! Codex session parser
 //!
 //! Parses JSONL files from ~/.codex/sessions/
 //! Note: This parser has stateful logic to track model and delta calculations.

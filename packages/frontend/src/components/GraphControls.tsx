@@ -134,8 +134,7 @@ const SourceFilterGroup = styled.div`
   gap: 8px;
   flex-wrap: wrap;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: visible;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding-bottom: 4px;
@@ -171,7 +170,7 @@ const SourceFilterButton = styled.button<{ $isSelected: boolean }>`
   touch-action: manipulation;
   
   &:hover {
-    transform: scale(1.05);
+    transform: translateY(-1px);
   }
   
   &:focus-visible {
@@ -350,7 +349,6 @@ export function GraphControls({
       <FiltersWrapper>
         {availableClients.length > 1 && (
           <SourceFilterGroup role="group" aria-label="Client filters">
-            <FilterLabel id="client-filter-label" style={{ color: "var(--color-fg-muted)" }}>Filter:</FilterLabel>
             {availableClients.map((client) => {
               const isSelected = clientFilter.length === 0 || clientFilter.includes(client);
               return (
